@@ -432,3 +432,13 @@ Stated plainly, because the alternative is misleading:
 - [HKUDS/Vibe-Trading](https://github.com/HKUDS/Vibe-Trading) — the case for a distinct validation stage with reproducible run cards
 
 No third-party code is vendored; all implementations here are original.
+
+---
+
+## License
+
+[MIT](LICENSE) © 2026 Yong Jun Mun
+
+Provided as is, without warranty of any kind. Trading carries risk of financial
+loss; nothing here is financial advice, and the author accepts no liability for
+any use of this software.
