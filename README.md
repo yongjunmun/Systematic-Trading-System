@@ -9,7 +9,6 @@ It trades US / HK / SG equities and equity options against a **paper account**.
 The safety model makes reaching real money require three independent deliberate
 actions.
 
-<sub>Python 3.14 · ~5,000 lines · 259 unit tests · dependencies: `moomoo-api`, `pandas`, `numpy` — no SciPy</sub>
 
 ---
 
