@@ -1,0 +1,41 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime output: trade journal, cached bars, exported reports.
+# The journal contains your account activity - do not commit it.
+data/journal.db
+data/journal.db-journal
+data/cache/
+data/reports/
+data/runcards/
+data/watchlist.txt
+*.log
+
+# Local overrides. Keep any settings file with real account numbers out of git.
+settings.local.toml
+*.local.toml
+.env
+
+# Scratch scripts, repo root only - must not swallow package __init__.py files
+/_*.py
+!__init__.py
+
+# moomoo / OpenD artefacts
+OpenD*/
+*.opend
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

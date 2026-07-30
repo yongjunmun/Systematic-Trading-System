@@ -1,0 +1,215 @@
+# =============================================================================
+#  moobot settings
+#  Everything here is safe to commit - there are no secrets in this file.
+# =============================================================================
+
+# Where the bar cache, trade journal and reports are written.
+data_dir = "data"
+
+
+[connection]
+# OpenD must already be running and logged in before the bot starts.
+host = "127.0.0.1"
+port = 11111
+# FUTUINC = moomoo US   FUTUSG = moomoo SG   FUTUAU = moomoo AU
+# FUTUCA  = moomoo CA   FUTUMY = moomoo MY   FUTUJP = moomoo JP
+# FUTUSECURITIES = Futu HK
+security_firm = "FUTUINC"
+
+
+[account]
+# SIMULATE = paper money. Leave this alone.
+# Switching to "REAL" also requires allow_real_money = true below AND the
+# environment variable MOOBOT_ALLOW_REAL=I_ACCEPT_THE_RISK. Three separate
+# steps, on purpose.
+trd_env = "SIMULATE"
+market = "US"          # US, HK, CN, SG, JP, AU, CA, MY, CRYPTO
+acc_id = 0             # 0 = auto-pick the first matching paper account
+currency = "USD"
+allow_real_money = false
+
+
+[trading]
+# moomoo code format is MARKET.SYMBOL.
+codes = ["US.AAPL", "US.MSFT", "US.NVDA", "US.SPY"]
+
+# K_1M K_3M K_5M K_15M K_30M K_60M K_DAY K_WEEK K_MON
+bar_type = "K_15M"
+history_bars = 400     # bars fetched per cycle; must cover the strategy warmup
+poll_seconds = 60      # how often the loop wakes up
+
+# NORMAL = limit order, MARKET = market order.
+# Paper trading accepts nothing else.
+order_type = "NORMAL"
+limit_slippage_bps = 10   # cross the spread by 0.10% so limits actually fill
+
+allow_shorts = false
+only_trade_market_hours = true
+
+# false = trade [trading].codes
+# true  = trade whatever `python run.py scan --write` last saved
+use_watchlist = false
+
+# true  = compute everything, send nothing (start here)
+# false = send real orders to the PAPER account
+dry_run = true
+
+
+[exits]
+# How a position is managed AFTER entry. This matters more than the entry signal.
+#
+# simple = flat stop and target from [risk]
+# ladder = scale out at a profit multiple of initial risk (R), move the stop to
+#          breakeven, then trail. R = entry price - initial stop.
+mode = "ladder"
+
+partial_at_r = 0.75       # sell part of the position here (0 disables)
+partial_fraction = 0.34   # how much of it to sell
+breakeven_at_r = 1.0      # move the stop up to the entry price here (0 disables)
+target_r = 3.0            # close the rest here (0 = no target, ride the trail)
+
+# atr | swing_low | percent | none
+trail_method = "atr"
+trail_atr_multiple = 2.0
+trail_percent = 5.0
+swing_left = 2            # bars either side that confirm a swing low
+swing_right = 2
+trail_only_after_breakeven = true
+
+
+[session]
+# Intraday time gates. Off by default; turn on for day-trading timeframes.
+# Stops the bot entering into the opening auction and flattens before the close
+# so it never carries overnight gap risk it did not choose.
+enabled = false
+timezone = "America/New_York"
+earliest_entry = "10:05"
+latest_entry = "15:30"
+force_close = "15:51"
+max_trades_per_day = 5
+
+
+[strategy]
+# Run `python run.py strategies` to see every option and its parameters.
+name = "sma_cross"
+
+[strategy.params]
+fast = 20
+slow = 50
+trend = 200        # 0 disables the long-term trend filter
+use_ema = false
+atr_period = 14
+atr_stop_multiple = 2.0
+
+
+[risk]
+max_positions = 4          # never hold more than this many names at once
+risk_per_trade_pct = 1.0   # % of equity risked between entry and stop
+max_position_pct = 20.0    # cap on any single position's notional
+stop_loss_pct = 5.0        # default stop when the strategy does not supply one
+take_profit_pct = 10.0     # only used when [exits].mode = "simple"
+max_daily_loss_pct = 3.0   # kill switch: flatten and stop for the day
+min_cash_buffer_pct = 5.0  # never spend the last 5% of equity
+
+use_atr_stops = false      # true = size off ATR instead of stop_loss_pct
+atr_period = 14
+atr_stop_multiple = 2.0
+
+# Concentration control. Refuse a new name that moves with something you already
+# hold - five positions at 0.95 correlation is one position with five sets of
+# fees. 0 disables the check.
+max_correlation = 0.0
+correlation_lookback = 60
+
+# Volatility management. Fixed-fractional sizing quietly takes far more risk in a
+# turbulent market than a calm one, because the stop is wider in both cases but
+# the odds of gapping straight through it are not. Both default to off.
+target_volatility_pct = 0.0   # annualised %; scales size toward this level
+max_volatility_pct = 0.0      # annualised %; refuses entry above this level
+vol_lookback = 20
+max_vol_scale = 1.5           # cap on scaling UP when the market is calm
+
+
+[scanner]
+# Ranks a universe by the conditions that precede a tradable move, then writes
+# the survivors to a watchlist. Run: python run.py scan --write
+enabled = false
+universe = []              # empty = use [trading].codes
+min_price = 3.0            # skip penny stocks
+min_gap_pct = 3.0          # move from the previous close
+min_rvol = 1.5             # today's volume vs the recent average
+rvol_lookback = 14
+max_symbols = 20
+watchlist_path = "data/watchlist.txt"
+
+
+[validation]
+# Used by: python run.py validate
+walk_forward_folds = 4
+bootstrap_samples = 2000
+monte_carlo_runs = 2000
+confidence_pct = 95.0
+min_trades_for_significance = 30
+random_seed = 20260728
+
+# Gap cut from the end of each training window. Without it a trade opened in the
+# last training bars is still open when the test fold begins, so the fit is
+# scored partly on data it is supposed to be blind to.
+embargo_pct = 2.0
+
+# Optional. Add a grid and `validate` switches from fold stability to a true
+# anchored walk-forward: parameters are fitted only on data before each fold.
+# It also enables Sharpe deflation, which charges you for every combination
+# tried - searching harder makes the winner look better whether or not it is.
+# [validation.grid]
+# fast = [10, 20, 30]
+# slow = [50, 100]
+
+
+[notifications]
+# Push alerts while the bot runs unattended. Credentials come from environment
+# variables, never from this file:
+#   MOOBOT_TELEGRAM_TOKEN     bot token from @BotFather
+#   MOOBOT_TELEGRAM_CHAT_ID   your chat id from @userinfobot
+#   MOOBOT_WEBHOOK_URL        any https endpoint that accepts a POST (e.g. ntfy.sh)
+enabled = false
+on_entry = true
+on_exit = true
+on_halt = true
+on_error = true
+timeout_seconds = 5.0
+
+
+[options]
+# Off by default. Turn this on and the bot trades option contracts on a stock
+# signal instead of the shares themselves. You need an OPTION or
+# STOCK_AND_OPTION paper account for this to work.
+enabled = false
+
+# long             - buy a call on a BUY signal
+# covered_call     - sell a call against 100+ shares you already own
+# cash_secured_put - sell a put with the full assignment value in cash
+style = "long"
+
+min_dte = 14               # skip anything expiring sooner than this
+max_dte = 45
+target_delta = 0.35        # pick the contract whose |delta| is closest
+max_contracts = 1
+max_premium_per_trade = 500.0
+min_open_interest = 100    # liquidity floor - illiquid options are a trap
+max_spread_pct = 15.0      # reject anything wider than this bid/ask spread
+
+stop_loss_pct = 50.0           # long options: exit after losing half the premium
+take_profit_pct = 100.0        # long options: exit after a double
+short_profit_target_pct = 50.0 # short options: buy back at 50% of the credit
+short_stop_multiple = 2.0      # short options: buy back if premium doubles
+
+
+[backtest]
+start = "2023-01-01"       # "" = as far back as moomoo will serve
+end = ""
+initial_cash = 100000.0
+commission_per_share = 0.005
+min_commission = 1.0
+slippage_bps = 5.0
+use_cache = true

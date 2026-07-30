@@ -1,0 +1,10 @@
+# moobot dependencies.
+#
+# moomoo-api is the official SDK. It talks to the OpenD gateway, which you
+# install separately from https://www.moomoo.com/download/OpenAPI
+#
+# Everything else (tomllib, sqlite3, argparse, socket) is in the standard library.
+
+moomoo-api>=10.9
+pandas>=2.0
+numpy>=1.24
