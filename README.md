@@ -9,7 +9,6 @@ It trades US / HK / SG equities and equity options against a **paper account**.
 The safety model makes reaching real money require three independent deliberate
 actions.
 
-
 ---
 
 ## Why this project is interesting
