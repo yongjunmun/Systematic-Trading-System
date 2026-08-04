@@ -1,5 +1,7 @@
 # moobot — an algorithmic trading system for moomoo / Futu OpenAPI
 
+[![tests](https://github.com/yongjunmun/Systematic-Trading-System/actions/workflows/ci.yml/badge.svg)](https://github.com/yongjunmun/Systematic-Trading-System/actions/workflows/ci.yml)
+
 An end-to-end systematic trading system: signal generation, risk-managed
 position sizing, an R-multiple exit ladder, a no-lookahead event-driven
 backtester, and a statistical validation suite that tries hard to prove its own

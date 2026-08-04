@@ -1,0 +1,41 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # settings.py uses stdlib tomllib, which lands in 3.11.
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Fail if the broker SDK leaked into the test dependencies
+        run: |
+          if python -c "import moomoo" 2>/dev/null; then
+            echo "moomoo-api is installed; the suite would no longer prove it runs broker-free."
+            exit 1
+          fi
+          echo "No broker SDK present, as intended."
+
+      - name: Run unit tests
+        run: python -m pytest -q

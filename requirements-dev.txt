@@ -1,0 +1,9 @@
+# Test-only dependencies.
+#
+# moomoo-api is deliberately absent. The suite must pass with no broker SDK
+# installed and no OpenD gateway running, which is what keeps "259 unit tests,
+# no broker connection required" an enforced property rather than a claim.
+
+pandas>=2.0
+numpy>=1.24
+pytest>=8.0
